@@ -1,25 +1,25 @@
 <p align="center">
-  <img src="sample-logo-470x235-1.png" alt="Logo">
+  <img src="assets/logo.png" alt="Logo">
 </p>
 
-<h1 align="center">Project Name</h1>
+<h1 align="center">Django Boilerplate</h1>
 
 <p align="center">
 
-<a href="https://github.com/S4NKALP/django-boilerplate/graphs/contributors">
-<img alt="People" src="https://img.shields.io/github/contributors/S4NKALP/django-boilerplate?style=flat&color=ffaaf2&label=People"> </a>
+<a href="https://github.com/S4NKALP/django-biolerplate/graphs/contributors">
+<img alt="People" src="https://img.shields.io/github/contributors/S4NKALP/django-biolerplate.?style=flat&color=ffaaf2&label=People"> </a>
 
-<a href="https://github.com/S4NKALP/django-boilerplate/stargazers">
-<img alt="Stars" src="https://img.shields.io/github/stars/S4NKALP/django-boilerplate?style=flat&color=98c379&label=Stars"></a>
+<a href="https://github.com/S4NKALP/django-biolerplate/stargazers">
+<img alt="Stars" src="https://img.shields.io/github/stars/S4NKALP/django-biolerplate.?style=flat&color=98c379&label=Stars"></a>
 
-<a href="https://github.com/S4NKALP/django-boilerplate/network/members">
-<img alt="Forks" src="https://img.shields.io/github/forks/S4NKALP/django-boilerplate?style=flat&color=66a8e0&label=Forks"> </a>
+<a href="https://github.com/S4NKALP/django-biolerplate/network/members">
+<img alt="Forks" src="https://img.shields.io/github/forks/S4NKALP/django-biolerplate.?style=flat&color=66a8e0&label=Forks"> </a>
 
-<a href="https://github.com/S4NKALP/django-boilerplate/watchers">
-<img alt="Watches" src="https://img.shields.io/github/watchers/S4NKALP/django-boilerplate?style=flat&color=f5d08b&label=Watches"> </a>
+<a href="https://github.com/S4NKALP/django-biolerplate/watchers">
+<img alt="Watches" src="https://img.shields.io/github/watchers/S4NKALP/django-biolerplate?style=flat&color=f5d08b&label=Watches"> </a>
 
-<a href="https://github.com/S4NKALP/django-boilerplate/pulse">
-<img alt="Last Updated" src="https://img.shields.io/github/last-commit/S4NKALP/django-boilerplate?style=flat&color=e06c75&label="> </a>
+<a href="https://github.com/S4NKALP/django-biolerplate/pulse">
+<img alt="Last Updated" src="https://img.shields.io/github/last-commit/S4NKALP/django-biolerplate?style=flat&color=e06c75&label="> </a>
 </p>
 
 <p align="center">
