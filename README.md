@@ -1,38 +1,27 @@
-<p align="center">
-  <img src="assets/logo.png" alt="Logo">
-</p>
+<div align="center">
+  <img src="assets/logo.png" alt="Logo"/>
 
-<h1 align="center">Django Boilerplate</h1>
+# Django Boilerplate
 
-<p align="center">
+[![People](https://img.shields.io/github/contributors/S4NKALP/django-biolerplate?style=flat&color=ffaaf2&label=People)](https://github.com/S4NKALP/django-biolerplate/graphs/contributors)
+[![Stars](https://img.shields.io/github/stars/S4NKALP/django-biolerplate?style=flat&color=98c379&label=Stars)](https://github.com/S4NKALP/django-biolerplate/stargazers)
+[![Forks](https://img.shields.io/github/forks/S4NKALP/django-biolerplate?style=flat&color=66a8e0&label=Forks)](https://github.com/S4NKALP/django-biolerplate/network/members)
+[![Watches](https://img.shields.io/github/watchers/S4NKALP/django-biolerplate?style=flat&color=f5d08b&label=Watches)](https://github.com/S4NKALP/django-biolerplate/watchers)
+[![Last Commit](https://img.shields.io/github/last-commit/S4NKALP/django-biolerplate?style=flat&color=e06c75&label=Updated)](https://github.com/S4NKALP/django-biolerplate/pulse)
 
-<a href="https://github.com/S4NKALP/django-biolerplate/graphs/contributors">
-<img alt="People" src="https://img.shields.io/github/contributors/S4NKALP/django-biolerplate.?style=flat&color=ffaaf2&label=People"> </a>
+</div>
 
-<a href="https://github.com/S4NKALP/django-biolerplate/stargazers">
-<img alt="Stars" src="https://img.shields.io/github/stars/S4NKALP/django-biolerplate.?style=flat&color=98c379&label=Stars"></a>
+---
 
-<a href="https://github.com/S4NKALP/django-biolerplate/network/members">
-<img alt="Forks" src="https://img.shields.io/github/forks/S4NKALP/django-biolerplate.?style=flat&color=66a8e0&label=Forks"> </a>
-
-<a href="https://github.com/S4NKALP/django-biolerplate/watchers">
-<img alt="Watches" src="https://img.shields.io/github/watchers/S4NKALP/django-biolerplate?style=flat&color=f5d08b&label=Watches"> </a>
-
-<a href="https://github.com/S4NKALP/django-biolerplate/pulse">
-<img alt="Last Updated" src="https://img.shields.io/github/last-commit/S4NKALP/django-biolerplate?style=flat&color=e06c75&label="> </a>
-</p>
+<strong>**Django Boilerplate** is a **production-ready starter kit** packed with modern tools and best practices to help developers
+build scalable, maintainable, and feature-rich Django applications faster.</strong>
 
 <p align="center">
-  <strong>A brief description of the project</strong>
-  <br>
-  Describe detailed information about the project, including its description and features.
-  <br>
-  <br>
-  <a href="https://github.com/S4NKALP/django-boilerplate/wiki">Documentation</a>
+  <a href="https://github.com/S4NKALP/django-biolerplate/wiki">Documentation</a>
   ·
-  <a href="https://github.com/S4NKALP/django-boilerplate/issues">Report a Bug</a>
+  <a href="https://github.com/S4NKALP/django-biolerplate/issues">Report a Bug</a>
   ·
-  <a href="https://github.com/S4NKALP/django-boilerplate/issues">Request a Feature</a>
+  <a href="https://github.com/S4NKALP/django-biolerplate/issues">Request a Feature</a>
 </p>
 
 <br>
