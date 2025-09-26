@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg
+*.egg-info/
+*.eggs/
+dist/
+build/
+*.manifest
+pip-log.txt
+*.log
+*.pot
+*.mo
