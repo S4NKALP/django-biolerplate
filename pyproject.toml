@@ -17,6 +17,12 @@ dependencies = [
     "Django>=5.2"
 ]
 
+[project.optional-dependencies]
+full = [
+    "Django>=5.2",
+    "inquirer>=3.0.0"
+]
+
 [project.urls]
 Homepage = "https://github.com/S4NKALP/django-boilerplate-generator"
 Repository = "https://github.com/S4NKALP/django-boilerplate-generator"
@@ -26,3 +32,8 @@ django-boilerplate = "cli:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+boilerplate = [
+  "**/*",
+]

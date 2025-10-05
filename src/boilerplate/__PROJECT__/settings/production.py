@@ -16,25 +16,8 @@ SECURE_HSTS_PRELOAD = True
 if not ALLOWED_HOSTS or ALLOWED_HOSTS == ["*"]:
     ALLOWED_HOSTS = ["{{ project_name }}.com", "www.{{ project_name }}.com"]
 
-# Gmail SMTP
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-# EMAIL_TO = os.getenv('EMAIL_TO')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-# Whitenoise
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+# Feature-specific production settings
+{{ production_settings }}
 
 AUTH_PASSWORD_VALIDATORS = [
     {

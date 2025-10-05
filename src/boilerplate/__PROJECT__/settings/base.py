@@ -19,11 +19,7 @@ def _split_env_list(value: str | None) -> list[str]:
 
 ALLOWED_HOSTS = _split_env_list(os.environ.get("DJANGO_ALLOWED_HOSTS")) or (["*"] if DEBUG else ["127.0.0.1", "localhost"])
 
-THIRD_PARTY_APPS = [
-    'rest_framework',
-    'corsheaders',
-    'drf_yasg',
-]
+THIRD_PARTY_APPS = {{ third_party_apps }}
 USER_DEFINED_APPS = [
     '{{ app_name }}',
 ]
@@ -41,10 +37,8 @@ BUILT_IN_APPS = [
 INSTALLED_APPS = BUILT_IN_APPS + THIRD_PARTY_APPS + USER_DEFINED_APPS
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
+{{ middleware }}    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -99,33 +93,8 @@ MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
 MEDIA_URL = os.environ.get("DJANGO_MEDIA_URL", "/media/")
 
 
-REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
-    "PAGE_SIZE": 10,
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
-    ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
-CORS_ALLOWED_ORIGINS = _split_env_list(os.environ.get("CORS_ALLOWED_ORIGINS"))
-CORS_ALLOW_ALL_ORIGINS = (
-    (os.environ.get("CORS_ALLOW_ALL_ORIGINS") or "").lower() in ("1", "true", "yes", "on")
-    or (not CORS_ALLOWED_ORIGINS and DEBUG)
-)
-CORS_ALLOW_CREDENTIALS = (os.environ.get("CORS_ALLOW_CREDENTIALS", "True").lower() in ("1", "true", "yes", "on"))
-
-CORS_ALLOWED_METHODS = [
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-]
+# Feature-specific settings
+{{ feature_settings }}
 
 CSRF_TRUSTED_ORIGINS = _split_env_list(os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS"))
 
