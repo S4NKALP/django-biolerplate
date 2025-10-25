@@ -1,654 +1,64 @@
+"""
+Main CLI orchestrator for Django project setup.
+Coordinates between different managers to create a complete Django project.
+"""
+
 import os
-import subprocess
-import sys
+from typing import List, Tuple, Callable
 
 try:
     # For when running as part of the package
-    from .console import UIColors, UIFormatter, console
+    from .console import UIFormatter
+    from .project_manager import ProjectManager
+    from .settings_manager import SettingsManager
+    from .file_manager import FileManager
 except ImportError:
     # For when running directly
     from console import UIFormatter
+    from project_manager import ProjectManager
+    from settings_manager import SettingsManager
+    from file_manager import FileManager
 
 
 class Cli:
-    def __init__(self, project_name, app_name):
-        self.django_project_name = project_name
-        self.django_app_name = app_name
-        self.project_root = os.path.join(os.getcwd(), self.django_project_name)
-        self.project_configs = os.path.join(self.project_root, self.django_project_name)
-        self.settings_folder = os.path.join(self.project_configs, "settings")
-        self.settings_file = os.path.join(self.project_configs, "settings.py")
-
-    def _create_project(self) -> bool:
-        """
-        Create a new Django project,
-        return True if successful, False otherwise.
-        """
-
-        # check if a project already exists
-        if not os.path.exists(self.project_root):
-            try:
-                import django
-            except ImportError:
-                subprocess.run(
-                    [sys.executable, "-m", "pip", "install", "--upgrade", "django"],
-                    check=True,
-                )
-
-            try:
-                subprocess.run(
-                    ["django-admin", "startproject", self.django_project_name],
-                    check=True,
-                )
-                UIFormatter.print_success(
-                    f"Django project '{self.django_project_name}' created successfully!"
-                )
-                return True
-            except Exception as e:
-                UIFormatter.print_error(f"Failed to create Django project: {str(e)}")
-                UIFormatter.print_info(
-                    "Make sure Django is installed and you have write permissions in the current directory."
-                )
-                return False
-
-        else:
-            UIFormatter.print_error(
-                f"Django project '{self.django_project_name}' already exists."
-            )
-            UIFormatter.print_info(
-                "Please choose a different project name or remove the existing directory."
-            )
-            return False
-
-    def _create_app(self) -> bool:
-        """Create a new Django app, return True if successful, False otherwise."""
-        try:
-            os.chdir(self.project_root)
-            subprocess.run(
-                [
-                    sys.executable,
-                    os.path.join(self.project_root, "manage.py"),
-                    "startapp",
-                    self.django_app_name,
-                ],
-                check=True,
-            )
-            UIFormatter.print_success(
-                f"Django app '{self.django_app_name}' created successfully!"
-            )
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to create Django app: {str(e)}")
-            UIFormatter.print_info(
-                "Make sure you're in the correct project directory and have write permissions."
-            )
-            return False
-
-    def _create_project_util_files(self) -> bool:
-        """
-        Creates:
-            .gitignore,
-            requirements.txt,
-            README.md,
-            .env.dev,
-            .env.prod,
-
-        returns: True if successful, False otherwise.
-        """
-        os.chdir(self.project_root)
-        try:
-            with open(".gitignore", "w") as file:
-                file.write("*.pyc\n")
-                file.write("__pycache__/\n")
-                file.write("*.sqlite3\n")
-                file.write("db.sqlite3\n")
-                file.write("env\n")
-                file.write(".env\n")
-                file.write(".vscode\n")
-                file.write(".idea\n")
-                file.write("*.DS_Store\n")
-
-            with open("requirements.txt", "w") as file:
-                file.write("Django>=5.2.7\n")
-                file.write("python-dotenv>=1.1.1\n")
-                file.write("django-jazzmin>=3.0.1\n")
-                file.write("djangorestframework>=3.16.1\n")
-                file.write("djangorestframework_simplejwt>=5.5.1\n")
-                file.write("drf-spectacular>=0.28.0\n")
-                file.write("django-cors-headers>=4.9.0\n")
-                file.write("whitenoise>=6.8.2\n")
-            open("README.md", "a").close()
-            with open(".env", "w") as file:
-                file.write("# Django settings\n")
-                file.write(
-                    f"DJANGO_SETTINGS_MODULE={self.django_project_name}.settings.development\n"
-                )
-                file.write(
-                    "SECRET_KEY=django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a\n"
-                )
-                file.write("ALLOWED_HOSTS=api.your-domain.com,www.your-domain.com\n")
-                file.write("\n# Database\n")
-                file.write("DB_NAME=\n")
-                file.write("DB_USER=\n")
-                file.write("DB_PASSWORD=\n")
-                file.write("DB_HOST=\n")
-                file.write("DB_PORT=\n")
-
-            UIFormatter.print_success(
-                "Created requirements.txt with Django dependencies, README, and .env files successfully!"
-            )
-            return True
-        except FileExistsError as e:
-            UIFormatter.print_error(f"Failed to create project utility files: {str(e)}")
-            UIFormatter.print_info(
-                "Some files may already exist. Please check the project directory."
-            )
-            return False
-
-    def _create_settings(self) -> bool:
-        """
-        Creates a settings folder of the Django project.
-        settings/base.py: Base settings
-        settings/develoment.py: Development settings
-        settings/production.py: Production settings
-
-        returns: True if successful, False otherwise.
-        """
-
-        # cd into project folder
-        os.chdir(self.project_configs)
-
-        # create folder called settings
-        os.makedirs("settings", exist_ok=True)
-
-        # move into new folder
-        os.chdir(self.settings_folder)
-
-        # move settings.py into new settings folder and rename it to base.py
-        os.rename(self.settings_file, os.path.join(self.settings_folder, "base.py"))
-
-        try:
-            open("__init__.py", "a").close()
-            open("development.py", "a").close()
-            open("production.py", "a").close()
-
-            UIFormatter.print_success(
-                f"Django project '{self.django_project_name}' settings folder and files created successfully!"
-            )
-            return True
-        except FileExistsError as e:
-            UIFormatter.print_error(f"Failed to create settings folder: {str(e)}")
-            UIFormatter.print_info(
-                "The settings folder may already exist. Please check the project structure."
-            )
-            return False
-
-    def _update_base_setting(self) -> bool:
-        """
-        Fill the base settings file with the necessary configurations.
-        returns: True if successful, False otherwise.
-        """
-        try:
-            # cd into project settings  folder
-            os.chdir(self.settings_folder)
-
-            # Complete base.py content
-            base_content = f'''"""
-Common settings shared between development and production environment
-
-"""
-
-from datetime import timedelta
-from pathlib import Path
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-
-# Application definition
-THIRD_PARTY_APPS = [
-    "rest_framework",
-    "rest_framework_simplejwt",
-    "rest_framework.token_blacklist",
-    "corsheaders",
-    "drf_spectacular",
-]
-
-USER_DEFINED_APPS = [
-    "{self.django_app_name}"
-]
-
-BUILT_IN_APPS = [
-    "jazzmin",
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-]
-
-INSTALLED_APPS = BUILT_IN_APPS + THIRD_PARTY_APPS + USER_DEFINED_APPS
-
-MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-]
-
-ROOT_URLCONF = "{self.django_project_name}.urls"
-
-TEMPLATES = [
-    {{
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {{
-            "context_processors": [
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        }},
-    }},
-]
-
-WSGI_APPLICATION = "{self.django_project_name}.wsgi.application"
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {{
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    }},
-    {{
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    }},
-    {{
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    }},
-    {{
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    }},
-]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
-USE_I18N = True
-USE_TZ = True
-
-# staticfiles and mediafiles
-STATIC_URL = "static/"
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# REST Framework Settings
-REST_FRAMEWORK = {{
-    "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
-    ],
-    "DEFAULT_PARSER_CLASSES": [
-        "rest_framework.parsers.JSONParser",
-    ],
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-    ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}}
-
-# Custom SPECTACULAR_SETTINGS and SIMPLE_JWT settings change as you see fit
-SPECTACULAR_SETTINGS = {{
-    "TITLE": " ",
-    "DESCRIPTION": "",
-    "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
-    "COMPONENT_SPLIT_REQUEST": True,
-}}
-
-SIMPLE_JWT = {{
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
-}}
-'''
-
-            # Write the complete base.py file
-            with open("base.py", "w") as file:
-                file.write(base_content)
-
-            # run black to format the code on base.py
-            subprocess.run(["black", "base.py"], check=True)
-            UIFormatter.print_success("Updated settings/base.py successfully!")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update settings/base.py: {str(e)}")
-            UIFormatter.print_info(
-                "Make sure Black formatter is installed: pip install black"
-            )
-            return False
-
-    def _update_dev_setting(self) -> bool:
-        """
-        Fill the development settings file with the necessary configurations.
-        returns: True if successful, False otherwise.
-        """
-        try:
-            # cd into project settings folder
-            os.chdir(self.settings_folder)
-
-            # open development.py file
-            with open("development.py", "w") as file:
-                file.write("from .base import *\n\n")
-                file.write(
-                    "# SECURITY WARNING: keep the secret key used in production secret!\n"
-                )
-                file.write(
-                    'SECRET_KEY = "django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a"\n\n'
-                )
-                file.write(
-                    "# SECURITY WARNING: don't run with debug turned on in production!\n"
-                )
-                file.write("DEBUG = True\n\n")
-                file.write('ALLOWED_HOSTS = ["*"]\n\n\n')
-                file.write("# Database\n")
-                file.write(
-                    "# https://docs.djangoproject.com/en/5.2/ref/settings/#databases\n\n"
-                )
-                file.write("DATABASES = {\n")
-                file.write('    "default": {\n')
-                file.write('        "ENGINE": "django.db.backends.sqlite3",\n')
-                file.write('        "NAME": BASE_DIR / "db.sqlite3",\n')
-                file.write("    }\n")
-                file.write("}\n")
-
-            UIFormatter.print_success("Updated settings/development.py successfully!")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(
-                f"Failed to update settings/development.py: {str(e)}"
-            )
-            UIFormatter.print_info("Please check file permissions and try again.")
-            return False
-
-    def _update_prod_setting(self) -> bool:
-        """
-        Fill the production settings file with the necessary configurations.
-        returns: True if successful, False otherwise.
-        """
-
-        try:
-            # cd into project settings folder
-            os.chdir(self.settings_folder)
-
-            # open production.py file
-            with open("production.py", "w") as file:
-                file.write("from .base import *\n")
-                file.write("import os\n\n")
-                file.write("DEBUG = False\n")
-                file.write("SECRET_KEY = os.getenv('SECRET_KEY')\n")
-                file.write("ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')\n")
-                file.write("\n# Database\n")
-                file.write("DATABASES = {\n")
-                file.write("    'default': {\n")
-                file.write("        'ENGINE': 'django.db.backends.postgresql',\n")
-                file.write("        'NAME': os.getenv('DB_NAME'),\n")
-                file.write("        'USER': os.getenv('DB_USER'),\n")
-                file.write("        'PASSWORD': os.getenv('DB_PASSWORD'),\n")
-                file.write("        'HOST': os.getenv('DB_HOST'),\n")
-                file.write("        'PORT': os.getenv('DB_PORT'),\n")
-                file.write("    }\n")
-                file.write("}\n")
-
-            UIFormatter.print_success("Updated settings/production.py successfully!")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(
-                f"Failed to update settings/production.py: {str(e)}"
-            )
-            UIFormatter.print_info("Please check file permissions and try again.")
-            return False
-
-    def _create_app_urls_file(self) -> bool:
-        """
-        create a urls.py file in the app folder.
-        returns: True if successful, False otherwise.
-        """
-
-        try:
-            # cd into the app folder
-            os.chdir(os.path.join(self.project_root, self.django_app_name))
-
-            # create urls.py file
-            open("urls.py", "w").close()
-
-            UIFormatter.print_success(
-                f"Created '{self.django_app_name}/urls.py' successfully!"
-            )
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to create app urls.py: {str(e)}")
-            UIFormatter.print_info("Please check file permissions and try again.")
-            return False
-
-    def _add_app_urls_to_project_urls(self) -> bool:
-        """
-        Overwrite the project urls file with comprehensive URL configuration.
-        returns: True if successful, False otherwise.
-        """
-        os.chdir(self.project_configs)
-
-        try:
-            # Complete urls.py content
-            urls_content = f'''from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-)
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenBlacklistView,
-)
-
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    # jwt tokens
-    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("token/blacklist/", TokenBlacklistView.as_view(), name="token_blacklist"),
-    # app urls
-    # path("", include("{self.django_app_name}.urls")),
-]
-
-# Don't show schema in production
-if settings.DEBUG:
-    urlpatterns += [
-        path("schema/", SpectacularAPIView.as_view(), name="schema"),
-        path("docs/", SpectacularSwaggerView.as_view(url_name="schema")),
-    ]
-'''
-
-            # Write the complete urls.py file
-            with open("urls.py", "w") as file:
-                file.write(urls_content)
-
-            subprocess.run(["black", "urls.py"], check=True)
-            UIFormatter.print_success(
-                "Updated project urls.py with comprehensive URL configuration!"
-            )
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update project urls.py: {str(e)}")
-            UIFormatter.print_info(
-                "Please check file permissions and ensure Black formatter is installed."
-            )
-            return False
-
-    def _update_wsgi_file(self) -> bool:
-        """
-        Overwrite the project wsgi.py file with custom configuration.
-        returns: True if successful, False otherwise.
-        """
-        try:
-            os.chdir(self.project_configs)
-
-            # Complete wsgi.py content
-            wsgi_content = """import os
-from dotenv import load_dotenv
-from django.core.wsgi import get_wsgi_application
-
-load_dotenv()
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODULE"))
-
-application = get_wsgi_application()
-"""
-
-            # Write the complete wsgi.py file
-            with open("wsgi.py", "w") as file:
-                file.write(wsgi_content)
-
-            subprocess.run(["black", "wsgi.py"], check=True)
-            UIFormatter.print_success("Updated wsgi.py with custom configuration!")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update wsgi.py: {str(e)}")
-            UIFormatter.print_info(
-                "Please check file permissions and ensure Black formatter is installed."
-            )
-            return False
-
-    def _update_asgi_file(self) -> bool:
-        """
-        Overwrite the project asgi.py file with custom configuration.
-        returns: True if successful, False otherwise.
-        """
-        try:
-            os.chdir(self.project_configs)
-
-            # Complete asgi.py content
-            asgi_content = """import os
-from dotenv import load_dotenv
-from django.core.asgi import get_asgi_application
-
-load_dotenv()
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODULE"))
-
-application = get_asgi_application()
-"""
-
-            # Write the complete asgi.py file
-            with open("asgi.py", "w") as file:
-                file.write(asgi_content)
-
-            subprocess.run(["black", "asgi.py"], check=True)
-            UIFormatter.print_success("Updated asgi.py with custom configuration!")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update asgi.py: {str(e)}")
-            UIFormatter.print_info(
-                "Please check file permissions and ensure Black formatter is installed."
-            )
-            return False
-
-    def _update_manage_py(self) -> bool:
-        """
-        Overwrite the project manage.py file with custom configuration.
-        returns: True if successful, False otherwise.
-        """
-        try:
-            os.chdir(self.project_root)
-
-            # Complete manage.py content
-            manage_content = '''#!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
-import os
-import sys
-from dotenv import load_dotenv
-
-
-def main():
-    """Run administrative tasks."""
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODULE"))
-
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
-    execute_from_command_line(sys.argv)
-
-
-if __name__ == "__main__":
-    load_dotenv()
-    main()
-'''
-
-            # Write the complete manage.py file
-            with open("manage.py", "w") as file:
-                file.write(manage_content)
-
-            subprocess.run(["black", "manage.py"], check=True)
-            UIFormatter.print_success("Updated manage.py with custom configuration!")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update manage.py: {str(e)}")
-            UIFormatter.print_info(
-                "Please check file permissions and ensure Black formatter is installed."
-            )
-            return False
-
-    def run_setup(self):
-        """Main method that creates everything"""
-        steps = [
-            ("Creating Django project", self._create_project),
-            ("Creating Django app", self._create_app),
-            ("Setting up project structure", self._create_settings),
-            ("Configuring base settings", self._update_base_setting),
-            ("Configuring development settings", self._update_dev_setting),
-            ("Configuring production settings", self._update_prod_setting),
-            ("Creating utility files", self._create_project_util_files),
-            ("Setting up app URLs", self._create_app_urls_file),
-            ("Configuring comprehensive URLs", self._add_app_urls_to_project_urls),
-            ("Updating WSGI configuration", self._update_wsgi_file),
-            ("Updating ASGI configuration", self._update_asgi_file),
-            ("Updating manage.py", self._update_manage_py),
+    """Main CLI orchestrator for Django project setup."""
+    
+    def __init__(self, project_name: str, app_name: str):
+        self.project_name = project_name
+        self.app_name = app_name
+        self.project_root = os.path.join(os.getcwd(), project_name)
+        
+        # Initialize managers
+        self.project_manager = ProjectManager(project_name, app_name)
+        self.settings_manager = SettingsManager(self.project_root, project_name, app_name)
+        self.file_manager = FileManager(self.project_root, project_name, app_name)
+
+    def run_setup(self) -> bool:
+        """Main method that orchestrates the complete Django project setup."""
+        # Define setup steps with their descriptions and corresponding methods
+        steps: List[Tuple[str, Callable[[], bool]]] = [
+            ("Creating Django project", self.project_manager.create_project),
+            ("Creating Django app", self.project_manager.create_app),
+            ("Validating project structure", self.project_manager.validate_project_structure),
+            ("Setting up project structure", self.settings_manager.create_settings_structure),
+            ("Configuring base settings", self.settings_manager.update_base_settings),
+            ("Configuring development settings", self.settings_manager.update_development_settings),
+            ("Configuring production settings", self.settings_manager.update_production_settings),
+            ("Creating utility files", self._create_utility_files),
+            ("Setting up app URLs", self.file_manager.create_app_urls),
+            ("Configuring comprehensive URLs", self.file_manager.update_project_urls),
+            ("Updating WSGI configuration", self.file_manager.update_wsgi_file),
+            ("Updating ASGI configuration", self.file_manager.update_asgi_file),
+            ("Updating manage.py", self.file_manager.update_manage_py),
         ]
-
+        
         total_steps = len(steps)
         success = True
 
+        # Execute each step with progress tracking
         for step_number, (description, step_func) in enumerate(steps, 1):
             UIFormatter.print_step(step_number, total_steps, description)
-
+            
             try:
                 result = step_func()
                 if not result:
@@ -657,9 +67,29 @@ if __name__ == "__main__":
                     break
             except Exception as e:
                 success = False
-                UIFormatter.print_error(
-                    f"Unexpected error in step {step_number}: {str(e)}"
-                )
+                UIFormatter.print_error(f"Unexpected error in step {step_number}: {str(e)}")
                 break
-
+        
         return success
+    
+    def _create_utility_files(self) -> bool:
+        """Create all utility files for the project."""
+        utility_steps = [
+            ("Creating .gitignore", self.file_manager.create_gitignore),
+            ("Creating requirements.txt", self.file_manager.create_requirements),
+            ("Creating README.md", self.file_manager.create_readme),
+            ("Creating .env file", self.file_manager.create_env_file),
+        ]
+        
+        for description, step_func in utility_steps:
+            try:
+                result = step_func()
+                if not result:
+                    UIFormatter.print_error(f"Failed to {description.lower()}")
+                    return False
+            except Exception as e:
+                UIFormatter.print_error(f"Unexpected error while {description.lower()}: {str(e)}")
+                return False
+        
+        UIFormatter.print_success("Created all utility files successfully!")
+        return True
