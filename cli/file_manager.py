@@ -5,16 +5,14 @@ Handles creation and modification of project files.
 
 import os
 import subprocess
+from typing import Optional
 
-try:
-    from .console import UIFormatter
-except ImportError:
-    from console import UIFormatter
+from .console import UIFormatter
 
 
 class FileManager:
     """Manages file operations for Django project setup."""
-
+    
     def __init__(self, project_root: str, project_name: str, app_name: str):
         self.project_root = project_root
         self.project_name = project_name
@@ -22,78 +20,67 @@ class FileManager:
         self.project_configs = os.path.join(project_root, project_name)
         self.settings_folder = os.path.join(self.project_configs, "settings")
         self.settings_file = os.path.join(self.project_configs, "settings.py")
-
+    
     def create_gitignore(self) -> bool:
         """Create .gitignore file with Django-specific patterns."""
-        try:
-            os.chdir(self.project_root)
-
-            gitignore_content = [
-                "*.pyc",
-                "__pycache__/",
-                "*.sqlite3",
-                "db.sqlite3",
-                "env",
-                ".env",
-                ".vscode",
-                ".idea",
-                "*.DS_Store",
-                "media/",
-                "staticfiles/",
-                "logs/",
-                "*.log",
-                ".coverage",
-                "htmlcov/",
-                ".pytest_cache/",
-                "node_modules/",
-                "venv/",
-                ".venv/",
-            ]
-
-            with open(".gitignore", "w") as file:
-                file.write("\n".join(gitignore_content) + "\n")
-
-            UIFormatter.print_success("Created .gitignore file")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to create .gitignore: {str(e)}")
-            return False
-
+        os.chdir(self.project_root)
+        
+        gitignore_content = [
+            "*.pyc",
+            "__pycache__/",
+            "*.sqlite3",
+            "db.sqlite3",
+            "env",
+            ".env",
+            ".vscode",
+            ".idea",
+            "*.DS_Store",
+            "media/",
+            "staticfiles/",
+            "logs/",
+            "*.log",
+            ".coverage",
+            "htmlcov/",
+            ".pytest_cache/",
+            "node_modules/",
+            "venv/",
+            ".venv/"
+        ]
+        
+        with open(".gitignore", "w") as file:
+            file.write("\n".join(gitignore_content) + "\n")
+        
+        UIFormatter.print_success("Created .gitignore file")
+        return True
+    
     def create_requirements(self) -> bool:
         """Create requirements.txt with Django dependencies."""
-        try:
-            os.chdir(self.project_root)
-
-            requirements = [
-                "Django>=5.2.7",
-                "python-dotenv>=1.1.1",
-                "django-jazzmin>=3.0.1",
-                "djangorestframework>=3.16.1",
-                "djangorestframework_simplejwt>=5.5.1",
-                "drf-spectacular>=0.28.0",
-                "django-cors-headers>=4.9.0",
-                "whitenoise>=6.8.2",
-                "psycopg2-binary>=2.9.9",  # For PostgreSQL support
-                "gunicorn>=21.2.0",  # For production deployment
-            ]
-
-            with open("requirements.txt", "w") as file:
-                file.write("\n".join(requirements) + "\n")
-
-            UIFormatter.print_success(
-                "Created requirements.txt with Django dependencies"
-            )
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to create requirements.txt: {str(e)}")
-            return False
-
+        os.chdir(self.project_root)
+        
+        requirements = [
+            "Django>=5.2.7",
+            "python-dotenv>=1.1.1",
+            "django-jazzmin>=3.0.1",
+            "djangorestframework>=3.16.1",
+            "djangorestframework_simplejwt>=5.5.1",
+            "drf-spectacular>=0.28.0",
+            "django-cors-headers>=4.9.0",
+            "whitenoise>=6.8.2",
+            "psycopg2-binary>=2.9.9",  # For PostgreSQL support
+            "gunicorn>=21.2.0",  # For production deployment
+        ]
+        
+        with open("requirements.txt", "w") as file:
+            file.write("\n".join(requirements) + "\n")
+        
+        UIFormatter.print_success("Created requirements.txt with Django dependencies")
+        return True
+    
     def create_readme(self) -> bool:
         """Create basic README.md file."""
-        try:
-            os.chdir(self.project_root)
-
-            readme_content = f"""# {self.project_name}
+        os.chdir(self.project_root)
+        
+        readme_content = f"""# {self.project_name}
 
 A Django project created with django-setup.
 
@@ -153,22 +140,18 @@ When running in development mode, API documentation is available at:
 - Swagger UI: http://localhost:8000/docs/
 - Schema: http://localhost:8000/schema/
 """
-
-            with open("README.md", "w") as file:
-                file.write(readme_content)
-
-            UIFormatter.print_success("Created README.md file")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to create README.md: {str(e)}")
-            return False
-
+        
+        with open("README.md", "w") as file:
+            file.write(readme_content)
+        
+        UIFormatter.print_success("Created README.md file")
+        return True
+    
     def create_env_file(self) -> bool:
         """Create .env.sample file with environment variables."""
-        try:
-            os.chdir(self.project_root)
-
-            env_content = f"""# Django settings
+        os.chdir(self.project_root)
+        
+        env_content = f"""# Django settings
 DJANGO_SETTINGS_MODULE={self.project_name}.settings.development
 SECRET_KEY=django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a
 ALLOWED_HOSTS=api.your-domain.com,www.your-domain.com
@@ -179,32 +162,20 @@ DB_USER=
 DB_PASSWORD=
 DB_HOST=
 DB_PORT=
-
-# Email settings
-EMAIL_HOST=
-EMAIL_PORT=
-EMAIL_USE_TLS=
-EMAIL_HOST_USER=
-EMAIL_HOST_PASSWORD=
-
 """
-
-            with open(".env.sample", "w") as file:
-                file.write(env_content)
-
-            UIFormatter.print_success("Created .env.sample file")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to create .env.sample file: {str(e)}")
-            return False
-
+        
+        with open(".env.sample", "w") as file:
+            file.write(env_content)
+        
+        UIFormatter.print_success("Created .env.sample file")
+        return True
+    
     def create_app_urls(self) -> bool:
         """Create urls.py file in the app folder."""
-        try:
-            app_path = os.path.join(self.project_root, self.app_name)
-            os.chdir(app_path)
-
-            urls_content = f"""from django.urls import path
+        app_path = os.path.join(self.project_root, self.app_name)
+        os.chdir(app_path)
+        
+        urls_content = f"""from django.urls import path
 from . import views
 
 app_name = '{self.app_name}'
@@ -214,22 +185,18 @@ urlpatterns = [
     # path('', views.index, name='index'),
 ]
 """
-
-            with open("urls.py", "w") as file:
-                file.write(urls_content)
-
-            UIFormatter.print_success(f"Created {self.app_name}/urls.py")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to create app urls.py: {str(e)}")
-            return False
-
+        
+        with open("urls.py", "w") as file:
+            file.write(urls_content)
+        
+        UIFormatter.print_success(f"Created {self.app_name}/urls.py")
+        return True
+    
     def update_project_urls(self) -> bool:
         """Update project urls.py with comprehensive URL configuration."""
-        try:
-            os.chdir(self.project_configs)
-
-            urls_content = f"""from django.contrib import admin
+        os.chdir(self.project_configs)
+        
+        urls_content = f"""from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from drf_spectacular.views import (
@@ -259,25 +226,19 @@ if settings.DEBUG:
         path("docs/", SpectacularSwaggerView.as_view(url_name="schema")),
     ]
 """
-
-            with open("urls.py", "w") as file:
-                file.write(urls_content)
-
-            self._format_file("urls.py")
-            UIFormatter.print_success(
-                "Updated project urls.py with comprehensive URL configuration"
-            )
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update project urls.py: {str(e)}")
-            return False
-
+        
+        with open("urls.py", "w") as file:
+            file.write(urls_content)
+        
+        self._format_file("urls.py")
+        UIFormatter.print_success("Updated project urls.py with comprehensive URL configuration")
+        return True
+    
     def update_wsgi_file(self) -> bool:
         """Update wsgi.py with custom configuration."""
-        try:
-            os.chdir(self.project_configs)
-
-            wsgi_content = """import os
+        os.chdir(self.project_configs)
+        
+        wsgi_content = f"""import os
 from dotenv import load_dotenv
 from django.core.wsgi import get_wsgi_application
 
@@ -287,23 +248,19 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODUL
 
 application = get_wsgi_application()
 """
-
-            with open("wsgi.py", "w") as file:
-                file.write(wsgi_content)
-
-            self._format_file("wsgi.py")
-            UIFormatter.print_success("Updated wsgi.py with custom configuration")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update wsgi.py: {str(e)}")
-            return False
-
+        
+        with open("wsgi.py", "w") as file:
+            file.write(wsgi_content)
+        
+        self._format_file("wsgi.py")
+        UIFormatter.print_success("Updated wsgi.py with custom configuration")
+        return True
+    
     def update_asgi_file(self) -> bool:
         """Update asgi.py with custom configuration."""
-        try:
-            os.chdir(self.project_configs)
-
-            asgi_content = """import os
+        os.chdir(self.project_configs)
+        
+        asgi_content = f"""import os
 from dotenv import load_dotenv
 from django.core.asgi import get_asgi_application
 
@@ -313,23 +270,19 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODUL
 
 application = get_asgi_application()
 """
-
-            with open("asgi.py", "w") as file:
-                file.write(asgi_content)
-
-            self._format_file("asgi.py")
-            UIFormatter.print_success("Updated asgi.py with custom configuration")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update asgi.py: {str(e)}")
-            return False
-
+        
+        with open("asgi.py", "w") as file:
+            file.write(asgi_content)
+        
+        self._format_file("asgi.py")
+        UIFormatter.print_success("Updated asgi.py with custom configuration")
+        return True
+    
     def update_manage_py(self) -> bool:
         """Update manage.py with custom configuration."""
-        try:
-            os.chdir(self.project_root)
-
-            manage_content = """#!/usr/bin/env python
+        os.chdir(self.project_root)
+        
+        manage_content = f"""#!/usr/bin/env python
 \"\"\"Django's command-line utility for administrative tasks.\"\"\"
 import os
 import sys
@@ -355,24 +308,14 @@ if __name__ == "__main__":
     load_dotenv()
     main()
 """
-
-            with open("manage.py", "w") as file:
-                file.write(manage_content)
-
-            self._format_file("manage.py")
-            UIFormatter.print_success("Updated manage.py with custom configuration")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update manage.py: {str(e)}")
-            return False
-
+        
+        with open("manage.py", "w") as file:
+            file.write(manage_content)
+        
+        self._format_file("manage.py")
+        UIFormatter.print_success("Updated manage.py with custom configuration")
+        return True
+    
     def _format_file(self, filename: str) -> None:
         """Format Python file using Black formatter."""
-        try:
-            subprocess.run(["black", filename], check=True, capture_output=True)
-        except subprocess.CalledProcessError:
-            # Black formatting failed, but file was still created
-            pass
-        except FileNotFoundError:
-            # Black not installed, skip formatting
-            pass
+        subprocess.run(["black", filename], check=True, capture_output=True)

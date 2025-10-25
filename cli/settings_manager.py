@@ -5,16 +5,14 @@ Handles creation and configuration of Django settings files.
 
 import os
 import subprocess
+from typing import Optional
 
-try:
-    from .console import UIFormatter
-except ImportError:
-    from console import UIFormatter
+from .console import UIFormatter
 
 
 class SettingsManager:
     """Manages Django settings configuration."""
-
+    
     def __init__(self, project_root: str, project_name: str, app_name: str):
         self.project_root = project_root
         self.project_name = project_name
@@ -22,40 +20,33 @@ class SettingsManager:
         self.project_configs = os.path.join(project_root, project_name)
         self.settings_folder = os.path.join(self.project_configs, "settings")
         self.settings_file = os.path.join(self.project_configs, "settings.py")
-
+    
     def create_settings_structure(self) -> bool:
         """Create settings folder structure and move settings.py to base.py."""
-        try:
-            # Change to project configs directory
-            os.chdir(self.project_configs)
-
-            # Create settings folder
-            os.makedirs("settings", exist_ok=True)
-
-            # Move settings.py to settings/base.py
-            if os.path.exists(self.settings_file):
-                os.rename(
-                    self.settings_file, os.path.join(self.settings_folder, "base.py")
-                )
-
-            # Create __init__.py files
-            os.chdir(self.settings_folder)
-            open("__init__.py", "a").close()
-            open("development.py", "a").close()
-            open("production.py", "a").close()
-
-            UIFormatter.print_success("Created Django settings folder structure")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to create settings structure: {str(e)}")
-            return False
-
+        # Change to project configs directory
+        os.chdir(self.project_configs)
+        
+        # Create settings folder
+        os.makedirs("settings", exist_ok=True)
+        
+        # Move settings.py to settings/base.py
+        if os.path.exists(self.settings_file):
+            os.rename(self.settings_file, os.path.join(self.settings_folder, "base.py"))
+        
+        # Create __init__.py files
+        os.chdir(self.settings_folder)
+        open("__init__.py", "a").close()
+        open("development.py", "a").close()
+        open("production.py", "a").close()
+        
+        UIFormatter.print_success("Created Django settings folder structure")
+        return True
+    
     def update_base_settings(self) -> bool:
         """Update base.py with comprehensive Django settings."""
-        try:
-            os.chdir(self.settings_folder)
-
-            base_content = f'''"""
+        os.chdir(self.settings_folder)
+        
+        base_content = f'''"""
 Common settings shared between development and production environment
 """
 
@@ -193,7 +184,7 @@ SPECTACULAR_SETTINGS = {{
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    # "SCHEMA_PATH_PREFIX": "/api/",
+    "SCHEMA_PATH_PREFIX": "/api/",
 }}
 
 # JWT Settings
@@ -212,26 +203,48 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Security Settings
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+
+# Logging
+LOGGING = {{
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {{
+        "verbose": {{
+            "format": "{{levelname}} {{asctime}} {{module}} {{process:d}} {{thread:d}} {{message}}",
+            "style": "{{",
+        }},
+    }},
+    "handlers": {{
+        "file": {{
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "logs" / "django.log",
+            "formatter": "verbose",
+        }},
+    }},
+    "root": {{
+        "handlers": ["file"],
+        "level": "INFO",
+    }},
+}}
 '''
-
-            with open("base.py", "w") as file:
-                file.write(base_content)
-
-            self._format_file("base.py")
-            UIFormatter.print_success(
-                "Updated settings/base.py with comprehensive configuration"
-            )
-            return True
-        except Exception as e:
-            UIFormatter.print_error(f"Failed to update settings/base.py: {str(e)}")
-            return False
-
+            
+        with open("base.py", "w") as file:
+            file.write(base_content)
+        
+        self._format_file("base.py")
+        UIFormatter.print_success("Updated settings/base.py with comprehensive configuration")
+        return True
+    
     def update_development_settings(self) -> bool:
         """Update development.py with development-specific settings."""
-        try:
-            os.chdir(self.settings_folder)
-
-            dev_content = """from .base import *
+        os.chdir(self.settings_folder)
+        
+        dev_content = f"""from .base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a"
@@ -244,12 +257,12 @@ ALLOWED_HOSTS = ["*"]
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
+DATABASES = {{
+    "default": {{
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+    }}
+}}
 
 # Email backend for development
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -260,25 +273,19 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Disable HTTPS redirect in development
 SECURE_SSL_REDIRECT = False
 """
-
-            with open("development.py", "w") as file:
-                file.write(dev_content)
-
-            self._format_file("development.py")
-            UIFormatter.print_success("Updated settings/development.py")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(
-                f"Failed to update settings/development.py: {str(e)}"
-            )
-            return False
-
+            
+        with open("development.py", "w") as file:
+            file.write(dev_content)
+        
+        self._format_file("development.py")
+        UIFormatter.print_success("Updated settings/development.py")
+        return True
+    
     def update_production_settings(self) -> bool:
         """Update production.py with production-specific settings."""
-        try:
-            os.chdir(self.settings_folder)
-
-            prod_content = """from .base import *
+        os.chdir(self.settings_folder)
+        
+        prod_content = f"""from .base import *
 import os
 
 DEBUG = False
@@ -286,16 +293,16 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 # Database
-DATABASES = {
-    'default': {
+DATABASES = {{
+    'default': {{
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
-    }
-}
+    }}
+}}
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -319,27 +326,17 @@ CSRF_COOKIE_SECURE = True
 # Static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Logging
+LOGGING['handlers']['file']['filename'] = '/var/log/django/django.log'
 """
-
-            with open("production.py", "w") as file:
-                file.write(prod_content)
-
-            self._format_file("production.py")
-            UIFormatter.print_success("Updated settings/production.py")
-            return True
-        except Exception as e:
-            UIFormatter.print_error(
-                f"Failed to update settings/production.py: {str(e)}"
-            )
-            return False
-
+            
+        with open("production.py", "w") as file:
+            file.write(prod_content)
+        
+        self._format_file("production.py")
+        UIFormatter.print_success("Updated settings/production.py")
+        return True
+    
     def _format_file(self, filename: str) -> None:
         """Format Python file using Black formatter."""
-        try:
-            subprocess.run(["black", filename], check=True, capture_output=True)
-        except subprocess.CalledProcessError:
-            # Black formatting failed, but file was still created
-            pass
-        except FileNotFoundError:
-            # Black not installed, skip formatting
-            pass
+        subprocess.run(["black", filename], check=True, capture_output=True)
