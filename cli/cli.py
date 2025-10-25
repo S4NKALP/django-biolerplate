@@ -6,10 +6,10 @@ import ast
 
 try:
     # For when running as part of the package
-    from .console import console
+    from .console import console, UIFormatter, UIColors
 except ImportError:
     # For when running directly
-    from console import console
+    from console import console, UIFormatter, UIColors
 
 
 class Cli:
@@ -42,15 +42,16 @@ class Cli:
                     ["django-admin", "startproject", self.django_project_name],
                     check=True,
                 )
-                console.print(
-                    f"\nDjango project '{self.django_project_name}' created successfully! ✅"
-                )
+                UIFormatter.print_success(f"Django project '{self.django_project_name}' created successfully!")
                 return True
             except Exception as e:
+                UIFormatter.print_error(f"Failed to create Django project: {str(e)}")
+                UIFormatter.print_info("Make sure Django is installed and you have write permissions in the current directory.")
                 return False
             
         else:
-            console.print(f"\nDjango project already exists. ❌")
+            UIFormatter.print_error(f"Django project '{self.django_project_name}' already exists.")
+            UIFormatter.print_info("Please choose a different project name or remove the existing directory.")
             return False
 
     def _create_app(self) -> bool:
@@ -66,12 +67,11 @@ class Cli:
                 ],
                 check=True,
             )
-            console.print(
-                f"\nDjango app '{self.django_app_name}' created successfully! ✅"
-            )
+            UIFormatter.print_success(f"Django app '{self.django_app_name}' created successfully!")
             return True
         except Exception as e:
-            # print("An error occurred while creating the Django app." + str(e)) # for debugging
+            UIFormatter.print_error(f"Failed to create Django app: {str(e)}")
+            UIFormatter.print_info("Make sure you're in the correct project directory and have write permissions.")
             return False
 
     def _create_project_util_files(self) -> bool:
@@ -120,12 +120,11 @@ class Cli:
                 file.write("DB_HOST=\n")
                 file.write("DB_PORT=\n")
 
-            console.print(
-                "\nCreated requirements.txt with Django dependencies, Readme, and .env files successfully! ✅"
-            )
+            UIFormatter.print_success("Created requirements.txt with Django dependencies, README, and .env files successfully!")
             return True
         except FileExistsError as e:
-            # print(f"An error occurred while creating the project utility files. {e}") # for debugging
+            UIFormatter.print_error(f"Failed to create project utility files: {str(e)}")
+            UIFormatter.print_info("Some files may already exist. Please check the project directory.")
             return False
 
     def _create_settings(self) -> bool:
@@ -155,12 +154,11 @@ class Cli:
             open("development.py", "a").close()
             open("production.py", "a").close()
 
-            console.print(
-                f"\nDjango project '{self.django_project_name}' Settings folder and files created successfully! ✅"
-            )
+            UIFormatter.print_success(f"Django project '{self.django_project_name}' settings folder and files created successfully!")
             return True
         except FileExistsError as e:
-            # print(F"An error occurred while creating the settings folder. {e}") # for debugging
+            UIFormatter.print_error(f"Failed to create settings folder: {str(e)}")
+            UIFormatter.print_info("The settings folder may already exist. Please check the project structure.")
             return False
 
     def _update_base_setting(self) -> bool:
@@ -320,11 +318,11 @@ SIMPLE_JWT = {{
 
             # run black to format the code on base.py
             subprocess.run(["black", "base.py"], check=True)
-            console.print(
-                f"\nUpdated settings/base.py successfully! ✅"
-            )
+            UIFormatter.print_success("Updated settings/base.py successfully!")
             return True
         except Exception as e:
+            UIFormatter.print_error(f"Failed to update settings/base.py: {str(e)}")
+            UIFormatter.print_info("Make sure Black formatter is installed: pip install black")
             return False
 
     def _update_dev_setting(self) -> bool:
@@ -353,12 +351,11 @@ SIMPLE_JWT = {{
                 file.write("    }\n")
                 file.write("}\n")
 
-            console.print(
-                f"\nUpdated settings/development.py successfully! ✅"
-            )
+            UIFormatter.print_success("Updated settings/development.py successfully!")
             return True
         except Exception as e:
-            # print(f"An error occurred while updating the development settings file. {e}") # for debugging
+            UIFormatter.print_error(f"Failed to update settings/development.py: {str(e)}")
+            UIFormatter.print_info("Please check file permissions and try again.")
             return False
 
     def _update_prod_setting(self) -> bool:
@@ -390,12 +387,11 @@ SIMPLE_JWT = {{
                 file.write("    }\n")
                 file.write("}\n")
 
-            console.print(
-                f"\nUpdated settings/production.py successfully! ✅"
-            )
+            UIFormatter.print_success("Updated settings/production.py successfully!")
             return True
         except Exception as e:
-            # print(f"An error occurred while updating the production settings file. {e}") # for debugging
+            UIFormatter.print_error(f"Failed to update settings/production.py: {str(e)}")
+            UIFormatter.print_info("Please check file permissions and try again.")
             return False
 
     def _create_app_urls_file(self) -> bool:
@@ -411,52 +407,63 @@ SIMPLE_JWT = {{
             # create urls.py file
             open("urls.py", "w").close()
 
-            console.print(
-                f"\nCreated '{self.django_app_name}/urls.py' successfully! ✅"
-            )
+            UIFormatter.print_success(f"Created '{self.django_app_name}/urls.py' successfully!")
             return True
         except Exception as e:
+            UIFormatter.print_error(f"Failed to create app urls.py: {str(e)}")
+            UIFormatter.print_info("Please check file permissions and try again.")
             return False
 
     def _add_app_urls_to_project_urls(self) -> bool:
         """
-        Add the app urls to the project urls file.
+        Overwrite the project urls file with comprehensive URL configuration.
         returns: True if successful, False otherwise.
         """
         os.chdir(self.project_configs)
 
         try:
-            with open("urls.py", "r") as file:
-                tree = ast.parse(file.read())
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.ImportFrom):
-                        if node.module == "django.urls":
-                            # add the include function to the import statement, if it doesn't exist
-                            if not any(alias.name == "include" for alias in node.names):
-                                node.names.append(ast.alias(name="include", asname=None))
+            # Complete urls.py content
+            urls_content = f'''from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+)
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenBlacklistView,
+)
 
-                for node in ast.walk(tree):
-                        if isinstance(node, ast.Assign):
-                            if node.targets[0].id == "urlpatterns":
-                                node.value.elts.append(
-                                    ast.Call(
-                                    func=ast.Name(id="path", ctx=ast.Load()),
-                                        args=[
-                                        ast.Constant(s="", kind=None),
-                                        ast.Name(id="include", ctx=ast.Load()),
-                                        ast.Constant(s=f"{self.django_app_name}.urls", kind=None)
-                                        ],
-                                        keywords=[],
-                                    )
-                                )
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    # jwt tokens
+    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("token/blacklist/", TokenBlacklistView.as_view(), name="token_blacklist"),
+    # app urls
+    # path("", include("{self.django_app_name}.urls")),
+]
 
+# Don't show schema in production
+if settings.DEBUG:
+    urlpatterns += [
+        path("schema/", SpectacularAPIView.as_view(), name="schema"),
+        path("docs/", SpectacularSwaggerView.as_view(url_name="schema")),
+    ]
+'''
+
+            # Write the complete urls.py file
             with open("urls.py", "w") as file:
-                file.write(astor.to_source(tree))
+                file.write(urls_content)
 
             subprocess.run(["black", "urls.py"], check=True)
-            console.print(f"\nAdded app urls to project urls.py successfully! ✅")
+            UIFormatter.print_success("Updated project urls.py with comprehensive URL configuration!")
             return True
         except Exception as e:
+            UIFormatter.print_error(f"Failed to update project urls.py: {str(e)}")
+            UIFormatter.print_info("Please check file permissions and ensure Black formatter is installed.")
             return False
     
     def _update_settings_path(self):
@@ -513,32 +520,43 @@ SIMPLE_JWT = {{
                 file.write(astor.to_source(tree))
 
             subprocess.run(["black", "manage.py"], check=True)
-            console.print(f"\nUpdated manage.py successfully! ✅")
+            UIFormatter.print_success("Updated manage.py successfully!")
             return True
         except Exception as e:
+            UIFormatter.print_error(f"Failed to update manage.py: {str(e)}")
+            UIFormatter.print_info("Please check file permissions and ensure Black formatter is installed.")
             return False
 
     def run_setup(self):
         """Main method that creates everything"""
         steps = [
-            (self._create_project),
-            (self._create_app),
-            (self._create_settings),
-            (self._update_base_setting),
-            (self._update_dev_setting),
-            (self._update_prod_setting),
-            (self._create_project_util_files),
-            (self._create_app_urls_file),
-            (self._add_app_urls_to_project_urls),
-            (self._update_settings_path),
+            ("Creating Django project", self._create_project),
+            ("Creating Django app", self._create_app),
+            ("Setting up project structure", self._create_settings),
+            ("Configuring base settings", self._update_base_setting),
+            ("Configuring development settings", self._update_dev_setting),
+            ("Configuring production settings", self._update_prod_setting),
+            ("Creating utility files", self._create_project_util_files),
+            ("Setting up app URLs", self._create_app_urls_file),
+            ("Configuring comprehensive URLs", self._add_app_urls_to_project_urls),
+            ("Updating manage.py", self._update_settings_path),
         ]
+        
+        total_steps = len(steps)
         success = True
 
-        for step in steps:
-            result = step()
-            if not result:
+        for step_number, (description, step_func) in enumerate(steps, 1):
+            UIFormatter.print_step(step_number, total_steps, description)
+            
+            try:
+                result = step_func()
+                if not result:
+                    success = False
+                    UIFormatter.print_error(f"Step {step_number} failed: {description}")
+                    break
+            except Exception as e:
                 success = False
+                UIFormatter.print_error(f"Unexpected error in step {step_number}: {str(e)}")
                 break
         
-        if success:
-            console.print(f"\nMake sure you set the env 'DJANGO_SETTINGS_MODULE' to '{self.django_project_name}.settings.development' (for your development environment)\nor '{self.django_project_name}.settings.production' (for your production environment) before running the server.")
+        return success

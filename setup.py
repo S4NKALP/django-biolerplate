@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name="django-init",
+    name="django-setup",
     version="0.0.7",
     include_package_data=True,
     install_requires=[
@@ -22,7 +22,7 @@ setup(
     description="A CLI tool to set up Django projects for you",
     long_description=open("readme.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/S4NKALP/django-init",
+    url="https://github.com/S4NKALP/django-setup",
     classifiers=[
         "Programming Language :: Python :: 3",
         "Framework :: Django",
@@ -31,3 +31,4 @@ setup(
     ],
     python_requires=">=3.6",
 )
+
