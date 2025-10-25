@@ -1,15 +1,13 @@
 import os
-import sys
 import subprocess
-import astor
-import ast
+import sys
 
 try:
     # For when running as part of the package
-    from .console import console, UIFormatter, UIColors
+    from .console import UIColors, UIFormatter, console
 except ImportError:
     # For when running directly
-    from console import console, UIFormatter, UIColors
+    from console import UIFormatter
 
 
 class Cli:
@@ -36,22 +34,30 @@ class Cli:
                     [sys.executable, "-m", "pip", "install", "--upgrade", "django"],
                     check=True,
                 )
-                
+
             try:
                 subprocess.run(
                     ["django-admin", "startproject", self.django_project_name],
                     check=True,
                 )
-                UIFormatter.print_success(f"Django project '{self.django_project_name}' created successfully!")
+                UIFormatter.print_success(
+                    f"Django project '{self.django_project_name}' created successfully!"
+                )
                 return True
             except Exception as e:
                 UIFormatter.print_error(f"Failed to create Django project: {str(e)}")
-                UIFormatter.print_info("Make sure Django is installed and you have write permissions in the current directory.")
+                UIFormatter.print_info(
+                    "Make sure Django is installed and you have write permissions in the current directory."
+                )
                 return False
-            
+
         else:
-            UIFormatter.print_error(f"Django project '{self.django_project_name}' already exists.")
-            UIFormatter.print_info("Please choose a different project name or remove the existing directory.")
+            UIFormatter.print_error(
+                f"Django project '{self.django_project_name}' already exists."
+            )
+            UIFormatter.print_info(
+                "Please choose a different project name or remove the existing directory."
+            )
             return False
 
     def _create_app(self) -> bool:
@@ -67,11 +73,15 @@ class Cli:
                 ],
                 check=True,
             )
-            UIFormatter.print_success(f"Django app '{self.django_app_name}' created successfully!")
+            UIFormatter.print_success(
+                f"Django app '{self.django_app_name}' created successfully!"
+            )
             return True
         except Exception as e:
             UIFormatter.print_error(f"Failed to create Django app: {str(e)}")
-            UIFormatter.print_info("Make sure you're in the correct project directory and have write permissions.")
+            UIFormatter.print_info(
+                "Make sure you're in the correct project directory and have write permissions."
+            )
             return False
 
     def _create_project_util_files(self) -> bool:
@@ -110,8 +120,12 @@ class Cli:
             open("README.md", "a").close()
             with open(".env", "w") as file:
                 file.write("# Django settings\n")
-                file.write(f"DJANGO_SETTINGS_MODULE={self.django_project_name}.settings.development\n")
-                file.write("SECRET_KEY=django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a\n")
+                file.write(
+                    f"DJANGO_SETTINGS_MODULE={self.django_project_name}.settings.development\n"
+                )
+                file.write(
+                    "SECRET_KEY=django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a\n"
+                )
                 file.write("ALLOWED_HOSTS=api.your-domain.com,www.your-domain.com\n")
                 file.write("\n# Database\n")
                 file.write("DB_NAME=\n")
@@ -120,11 +134,15 @@ class Cli:
                 file.write("DB_HOST=\n")
                 file.write("DB_PORT=\n")
 
-            UIFormatter.print_success("Created requirements.txt with Django dependencies, README, and .env files successfully!")
+            UIFormatter.print_success(
+                "Created requirements.txt with Django dependencies, README, and .env files successfully!"
+            )
             return True
         except FileExistsError as e:
             UIFormatter.print_error(f"Failed to create project utility files: {str(e)}")
-            UIFormatter.print_info("Some files may already exist. Please check the project directory.")
+            UIFormatter.print_info(
+                "Some files may already exist. Please check the project directory."
+            )
             return False
 
     def _create_settings(self) -> bool:
@@ -154,11 +172,15 @@ class Cli:
             open("development.py", "a").close()
             open("production.py", "a").close()
 
-            UIFormatter.print_success(f"Django project '{self.django_project_name}' settings folder and files created successfully!")
+            UIFormatter.print_success(
+                f"Django project '{self.django_project_name}' settings folder and files created successfully!"
+            )
             return True
         except FileExistsError as e:
             UIFormatter.print_error(f"Failed to create settings folder: {str(e)}")
-            UIFormatter.print_info("The settings folder may already exist. Please check the project structure.")
+            UIFormatter.print_info(
+                "The settings folder may already exist. Please check the project structure."
+            )
             return False
 
     def _update_base_setting(self) -> bool:
@@ -322,7 +344,9 @@ SIMPLE_JWT = {{
             return True
         except Exception as e:
             UIFormatter.print_error(f"Failed to update settings/base.py: {str(e)}")
-            UIFormatter.print_info("Make sure Black formatter is installed: pip install black")
+            UIFormatter.print_info(
+                "Make sure Black formatter is installed: pip install black"
+            )
             return False
 
     def _update_dev_setting(self) -> bool:
@@ -337,13 +361,21 @@ SIMPLE_JWT = {{
             # open development.py file
             with open("development.py", "w") as file:
                 file.write("from .base import *\n\n")
-                file.write("# SECURITY WARNING: keep the secret key used in production secret!\n")
-                file.write('SECRET_KEY = "django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a"\n\n')
-                file.write("# SECURITY WARNING: don't run with debug turned on in production!\n")
+                file.write(
+                    "# SECURITY WARNING: keep the secret key used in production secret!\n"
+                )
+                file.write(
+                    'SECRET_KEY = "django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a"\n\n'
+                )
+                file.write(
+                    "# SECURITY WARNING: don't run with debug turned on in production!\n"
+                )
                 file.write("DEBUG = True\n\n")
                 file.write('ALLOWED_HOSTS = ["*"]\n\n\n')
                 file.write("# Database\n")
-                file.write("# https://docs.djangoproject.com/en/5.2/ref/settings/#databases\n\n")
+                file.write(
+                    "# https://docs.djangoproject.com/en/5.2/ref/settings/#databases\n\n"
+                )
                 file.write("DATABASES = {\n")
                 file.write('    "default": {\n')
                 file.write('        "ENGINE": "django.db.backends.sqlite3",\n')
@@ -354,7 +386,9 @@ SIMPLE_JWT = {{
             UIFormatter.print_success("Updated settings/development.py successfully!")
             return True
         except Exception as e:
-            UIFormatter.print_error(f"Failed to update settings/development.py: {str(e)}")
+            UIFormatter.print_error(
+                f"Failed to update settings/development.py: {str(e)}"
+            )
             UIFormatter.print_info("Please check file permissions and try again.")
             return False
 
@@ -390,7 +424,9 @@ SIMPLE_JWT = {{
             UIFormatter.print_success("Updated settings/production.py successfully!")
             return True
         except Exception as e:
-            UIFormatter.print_error(f"Failed to update settings/production.py: {str(e)}")
+            UIFormatter.print_error(
+                f"Failed to update settings/production.py: {str(e)}"
+            )
             UIFormatter.print_info("Please check file permissions and try again.")
             return False
 
@@ -407,7 +443,9 @@ SIMPLE_JWT = {{
             # create urls.py file
             open("urls.py", "w").close()
 
-            UIFormatter.print_success(f"Created '{self.django_app_name}/urls.py' successfully!")
+            UIFormatter.print_success(
+                f"Created '{self.django_app_name}/urls.py' successfully!"
+            )
             return True
         except Exception as e:
             UIFormatter.print_error(f"Failed to create app urls.py: {str(e)}")
@@ -459,72 +497,133 @@ if settings.DEBUG:
                 file.write(urls_content)
 
             subprocess.run(["black", "urls.py"], check=True)
-            UIFormatter.print_success("Updated project urls.py with comprehensive URL configuration!")
+            UIFormatter.print_success(
+                "Updated project urls.py with comprehensive URL configuration!"
+            )
             return True
         except Exception as e:
             UIFormatter.print_error(f"Failed to update project urls.py: {str(e)}")
-            UIFormatter.print_info("Please check file permissions and ensure Black formatter is installed.")
+            UIFormatter.print_info(
+                "Please check file permissions and ensure Black formatter is installed."
+            )
             return False
-    
-    def _update_settings_path(self):
+
+    def _update_wsgi_file(self) -> bool:
         """
-        Updates manage.py setting path
-        return True if successful False otherwise
+        Overwrite the project wsgi.py file with custom configuration.
+        returns: True if successful, False otherwise.
+        """
+        try:
+            os.chdir(self.project_configs)
+
+            # Complete wsgi.py content
+            wsgi_content = """import os
+from dotenv import load_dotenv
+from django.core.wsgi import get_wsgi_application
+
+load_dotenv()
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODULE"))
+
+application = get_wsgi_application()
+"""
+
+            # Write the complete wsgi.py file
+            with open("wsgi.py", "w") as file:
+                file.write(wsgi_content)
+
+            subprocess.run(["black", "wsgi.py"], check=True)
+            UIFormatter.print_success("Updated wsgi.py with custom configuration!")
+            return True
+        except Exception as e:
+            UIFormatter.print_error(f"Failed to update wsgi.py: {str(e)}")
+            UIFormatter.print_info(
+                "Please check file permissions and ensure Black formatter is installed."
+            )
+            return False
+
+    def _update_asgi_file(self) -> bool:
+        """
+        Overwrite the project asgi.py file with custom configuration.
+        returns: True if successful, False otherwise.
+        """
+        try:
+            os.chdir(self.project_configs)
+
+            # Complete asgi.py content
+            asgi_content = """import os
+from dotenv import load_dotenv
+from django.core.asgi import get_asgi_application
+
+load_dotenv()
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODULE"))
+
+application = get_asgi_application()
+"""
+
+            # Write the complete asgi.py file
+            with open("asgi.py", "w") as file:
+                file.write(asgi_content)
+
+            subprocess.run(["black", "asgi.py"], check=True)
+            UIFormatter.print_success("Updated asgi.py with custom configuration!")
+            return True
+        except Exception as e:
+            UIFormatter.print_error(f"Failed to update asgi.py: {str(e)}")
+            UIFormatter.print_info(
+                "Please check file permissions and ensure Black formatter is installed."
+            )
+            return False
+
+    def _update_manage_py(self) -> bool:
+        """
+        Overwrite the project manage.py file with custom configuration.
+        returns: True if successful, False otherwise.
         """
         try:
             os.chdir(self.project_root)
 
-            with open("manage.py", "r") as file:
-                tree = ast.parse(file.read())
-                
-                # Check if "from django.conf import settings" is already imported
-                import_already_exists = any(
-                    isinstance(node, ast.ImportFrom)
-                    and node.module == "django.conf"
-                    and any(alias.name == "settings" for alias in node.names)
-                    for node in tree.body
-                )
-
-                # if not import_already_exists:
-                #     env_import = ast.parse("from django.conf import settings").body[0]
-                #     last_import_index = -1
-                #     for index, node in enumerate(tree.body):
-                #         if isinstance(node, (ast.Import, ast.ImportFrom)):
-                #             last_import_index = index
-
-                #     # Insert the new import after the last import statement
-                #     tree.body.insert(last_import_index + 1, env_import)
-
-                # Find and update the `os.environ.setdefault` call
-                for node in tree.body:
-                    if isinstance(node, ast.FunctionDef) and node.name == "main":
-                        for stmt in node.body:
-                            if (
-                                isinstance(stmt, ast.Expr)
-                                and isinstance(stmt.value, ast.Call)
-                                and isinstance(stmt.value.func, ast.Attribute)
-                                and isinstance(stmt.value.func.value, ast.Attribute)
-                                and isinstance(stmt.value.func.value.value, ast.Name)
-                                and stmt.value.func.value.value.id == "os"
-                                and stmt.value.func.value.attr == "environ"
-                                and stmt.value.func.attr == "setdefault"
-                            ):
-                                # Update the second argument of the call
-                                stmt.value.args[1] = ast.parse(
-                                    f'os.getenv("DJANGO_SETTINGS_MODULE", "{self.django_project_name}.settings.development")'
-                                ).body[0].value
+            # Complete manage.py content
+            manage_content = '''#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+from dotenv import load_dotenv
 
 
-            # write the changes to the file, with indentation and spaces
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODULE"))
+
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == "__main__":
+    load_dotenv()
+    main()
+'''
+
+            # Write the complete manage.py file
             with open("manage.py", "w") as file:
-                file.write(astor.to_source(tree))
+                file.write(manage_content)
 
             subprocess.run(["black", "manage.py"], check=True)
-            UIFormatter.print_success("Updated manage.py successfully!")
+            UIFormatter.print_success("Updated manage.py with custom configuration!")
             return True
         except Exception as e:
             UIFormatter.print_error(f"Failed to update manage.py: {str(e)}")
-            UIFormatter.print_info("Please check file permissions and ensure Black formatter is installed.")
+            UIFormatter.print_info(
+                "Please check file permissions and ensure Black formatter is installed."
+            )
             return False
 
     def run_setup(self):
@@ -539,15 +638,17 @@ if settings.DEBUG:
             ("Creating utility files", self._create_project_util_files),
             ("Setting up app URLs", self._create_app_urls_file),
             ("Configuring comprehensive URLs", self._add_app_urls_to_project_urls),
-            ("Updating manage.py", self._update_settings_path),
+            ("Updating WSGI configuration", self._update_wsgi_file),
+            ("Updating ASGI configuration", self._update_asgi_file),
+            ("Updating manage.py", self._update_manage_py),
         ]
-        
+
         total_steps = len(steps)
         success = True
 
         for step_number, (description, step_func) in enumerate(steps, 1):
             UIFormatter.print_step(step_number, total_steps, description)
-            
+
             try:
                 result = step_func()
                 if not result:
@@ -556,7 +657,9 @@ if settings.DEBUG:
                     break
             except Exception as e:
                 success = False
-                UIFormatter.print_error(f"Unexpected error in step {step_number}: {str(e)}")
+                UIFormatter.print_error(
+                    f"Unexpected error in step {step_number}: {str(e)}"
+                )
                 break
-        
+
         return success
