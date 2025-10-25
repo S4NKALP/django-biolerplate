@@ -8,6 +8,7 @@ import subprocess
 from typing import Optional
 
 from .console import UIFormatter
+from .secret_generator import SecretKeyGenerator
 
 
 class FileManager:
@@ -153,7 +154,7 @@ When running in development mode, API documentation is available at:
         
         env_content = f"""# Django settings
 DJANGO_SETTINGS_MODULE={self.project_name}.settings.development
-SECRET_KEY=django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a
+SECRET_KEY= your-secret-key
 ALLOWED_HOSTS=api.your-domain.com,www.your-domain.com
 
 # Database
@@ -167,7 +168,7 @@ DB_PORT=
         with open(".env.sample", "w") as file:
             file.write(env_content)
         
-        UIFormatter.print_success("Created .env.sample file")
+        UIFormatter.print_success("Created .env.sample file with generated secret key")
         return True
     
     def create_app_urls(self) -> bool:

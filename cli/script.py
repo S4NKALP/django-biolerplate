@@ -7,6 +7,7 @@ import os
 import subprocess
 import re
 import sys
+import argparse
 from typing import Tuple, Optional
 
 try:
@@ -159,9 +160,77 @@ def confirm_setup(project_name: str, app_name: str) -> bool:
         UIFormatter.print_info("\nSetup cancelled by user.")
         return False
 
+def parse_arguments() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Django project setup tool",
+        prog="django-init"
+    )
+    
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    
+    # Setup command (default)
+    setup_parser = subparsers.add_parser("setup", help="Create a new Django project")
+    setup_parser.add_argument("--project", help="Django project name")
+    setup_parser.add_argument("--app", help="Django app name")
+    
+    # Secret command
+    secret_parser = subparsers.add_parser("secret", help="Generate Django secret keys")
+    secret_parser.add_argument("--count", type=int, default=3, help="Number of keys to generate")
+    secret_parser.add_argument("--length", type=int, default=50, help="Length of each secret key")
+    
+    return parser.parse_args()
+
+
+def handle_secret_command(args: argparse.Namespace) -> None:
+    """Handle the secret key generation command."""
+    try:
+        from .secret_generator import SecretKeyGenerator
+        
+        # Clear screen
+        clear_screen()
+        
+        # Generate keys
+        keys = SecretKeyGenerator.generate_multiple_keys(args.count, args.length)
+        environments = [f"Environment {i+1}" for i in range(len(keys))]
+        
+        # Display results
+        console.print()
+        SecretKeyGenerator.display_secret_keys(keys, environments)
+        
+        # Show usage instructions
+        from rich.panel import Panel
+        from rich.text import Text
+        
+        instructions = Text()
+        instructions.append("📋 Usage Instructions:\n", style=UIColors.ACCENT)
+        instructions.append("1. Copy the appropriate secret key for your environment\n")
+        instructions.append("2. Add it to your .env file:\n")
+        instructions.append("   SECRET_KEY=your_secret_key_here\n", style=UIColors.CODE)
+        instructions.append("3. Or set it as an environment variable:\n")
+        instructions.append("   export SECRET_KEY=your_secret_key_here\n", style=UIColors.CODE)
+        instructions.append("4. Never commit secret keys to version control!\n", style=UIColors.WARNING)
+        
+        console.print(Panel(instructions, title="💡 How to Use", border_style="blue"))
+        console.print()
+        
+    except Exception as e:
+        UIFormatter.print_error(f"Failed to generate secret keys: {e}")
+        sys.exit(1)
+
+
 def main() -> None:
     """Main entry point for the Django setup script."""
     try:
+        # Parse command line arguments
+        args = parse_arguments()
+        
+        # Handle secret command
+        if args.command == "secret":
+            handle_secret_command(args)
+            return
+        
+        # Default to setup command
         # Clear screen
         clear_screen()
 

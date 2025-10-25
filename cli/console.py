@@ -27,6 +27,7 @@ class UIColors:
     ACCENT = "bold magenta"
     PRIMARY = "bold white"
     SECONDARY = "bright_white"
+    CODE = "dim cyan"
 
 class UIFormatter:
     """Utility class for consistent UI formatting"""
@@ -110,7 +111,7 @@ class UIFormatter:
         welcome_text = Text()
         
         # ASCII Art Header
-        ascii_art = """
+        ascii_art = r"""
       _ _                           _       _ _   
      | (_)                         (_)     (_) |  
    __| |_  __ _ _ __   __ _  ___    _ _ __  _| |_ 
@@ -125,7 +126,7 @@ class UIFormatter:
 
   Repository: https://github.com/S4NKALP/django-init
   License: MIT
-"""
+ """
         
         welcome_text.append(ascii_art, style=UIColors.ACCENT)
         welcome_text.append("\n")

@@ -8,6 +8,7 @@ import subprocess
 from typing import Optional
 
 from .console import UIFormatter
+from .secret_generator import SecretKeyGenerator
 
 
 class SettingsManager:
@@ -20,6 +21,7 @@ class SettingsManager:
         self.project_configs = os.path.join(project_root, project_name)
         self.settings_folder = os.path.join(self.project_configs, "settings")
         self.settings_file = os.path.join(self.project_configs, "settings.py")
+        self.secret_key = SecretKeyGenerator.generate_secret_key(50)
     
     def create_settings_structure(self) -> bool:
         """Create settings folder structure and move settings.py to base.py."""
@@ -50,6 +52,7 @@ class SettingsManager:
 Common settings shared between development and production environment
 """
 
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -59,6 +62,9 @@ load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production')
 
 
 # Quick-start development settings - unsuitable for production
@@ -208,29 +214,6 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
-# Logging
-LOGGING = {{
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {{
-        "verbose": {{
-            "format": "{{levelname}} {{asctime}} {{module}} {{process:d}} {{thread:d}} {{message}}",
-            "style": "{{",
-        }},
-    }},
-    "handlers": {{
-        "file": {{
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": BASE_DIR / "logs" / "django.log",
-            "formatter": "verbose",
-        }},
-    }},
-    "root": {{
-        "handlers": ["file"],
-        "level": "INFO",
-    }},
-}}
 '''
             
         with open("base.py", "w") as file:
@@ -246,8 +229,7 @@ LOGGING = {{
         
         dev_content = f"""from .base import *
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-gs(+tg3%34((t$k(+6s5&n7b5@u)ruosu^&up00tr8ibuvml)a"
+SECRET_KEY = "{self.secret_key}"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

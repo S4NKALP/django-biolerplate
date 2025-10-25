@@ -10,6 +10,7 @@ from .console import UIFormatter
 from .project_manager import ProjectManager
 from .settings_manager import SettingsManager
 from .file_manager import FileManager
+from .secret_generator import generate_secret_command
 
 
 class Cli:
@@ -76,6 +77,15 @@ class Cli:
             result = step_func()
             if not result:
                 return False
-        
+
         UIFormatter.print_success("Created all utility files successfully!")
         return True
+    
+    def generate_secret_keys(self) -> bool:
+        """Generate Django secret keys for the project."""
+        try:
+            generate_secret_command()
+            return True
+        except Exception as e:
+            UIFormatter.print_error(f"Failed to generate secret keys: {e}")
+            return False
