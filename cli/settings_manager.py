@@ -5,15 +5,14 @@ Handles creation and configuration of Django settings files.
 
 import os
 import subprocess
-from typing import Optional
 
 from .console import UIFormatter
-from .secret_generator import SecretKeyGenerator
+from .secret_generator import generate_secret_key
 
 
 class SettingsManager:
     """Manages Django settings configuration."""
-    
+
     def __init__(self, project_root: str, project_name: str, app_name: str):
         self.project_root = project_root
         self.project_name = project_name
@@ -21,33 +20,33 @@ class SettingsManager:
         self.project_configs = os.path.join(project_root, project_name)
         self.settings_folder = os.path.join(self.project_configs, "settings")
         self.settings_file = os.path.join(self.project_configs, "settings.py")
-        self.secret_key = SecretKeyGenerator.generate_secret_key(50)
-    
+        self.secret_key = generate_secret_key(50)
+
     def create_settings_structure(self) -> bool:
         """Create settings folder structure and move settings.py to base.py."""
         # Change to project configs directory
         os.chdir(self.project_configs)
-        
+
         # Create settings folder
         os.makedirs("settings", exist_ok=True)
-        
+
         # Move settings.py to settings/base.py
         if os.path.exists(self.settings_file):
             os.rename(self.settings_file, os.path.join(self.settings_folder, "base.py"))
-        
+
         # Create __init__.py files
         os.chdir(self.settings_folder)
         open("__init__.py", "a").close()
         open("development.py", "a").close()
         open("production.py", "a").close()
-        
+
         UIFormatter.print_success("Created Django settings folder structure")
         return True
-    
+
     def update_base_settings(self) -> bool:
         """Update base.py with comprehensive Django settings."""
         os.chdir(self.settings_folder)
-        
+
         base_content = f'''"""
 Common settings shared between development and production environment
 """
@@ -215,18 +214,20 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
 '''
-            
+
         with open("base.py", "w") as file:
             file.write(base_content)
-        
+
         self._format_file("base.py")
-        UIFormatter.print_success("Updated settings/base.py with comprehensive configuration")
+        UIFormatter.print_success(
+            "Updated settings/base.py with comprehensive configuration"
+        )
         return True
-    
+
     def update_development_settings(self) -> bool:
         """Update development.py with development-specific settings."""
         os.chdir(self.settings_folder)
-        
+
         dev_content = f"""from .base import *
 
 SECRET_KEY = "{self.secret_key}"
@@ -255,19 +256,19 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Disable HTTPS redirect in development
 SECURE_SSL_REDIRECT = False
 """
-            
+
         with open("development.py", "w") as file:
             file.write(dev_content)
-        
+
         self._format_file("development.py")
         UIFormatter.print_success("Updated settings/development.py")
         return True
-    
+
     def update_production_settings(self) -> bool:
         """Update production.py with production-specific settings."""
         os.chdir(self.settings_folder)
-        
-        prod_content = f"""from .base import *
+
+        prod_content = """from .base import *
 import os
 
 DEBUG = False
@@ -275,16 +276,16 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 # Database
-DATABASES = {{
-    'default': {{
+DATABASES = {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
-    }}
-}}
+    }
+}
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -311,14 +312,14 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Logging
 LOGGING['handlers']['file']['filename'] = '/var/log/django/django.log'
 """
-            
+
         with open("production.py", "w") as file:
             file.write(prod_content)
-        
+
         self._format_file("production.py")
         UIFormatter.print_success("Updated settings/production.py")
         return True
-    
+
     def _format_file(self, filename: str) -> None:
         """Format Python file using Black formatter."""
         subprocess.run(["black", filename], check=True, capture_output=True)

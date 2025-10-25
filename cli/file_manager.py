@@ -5,15 +5,13 @@ Handles creation and modification of project files.
 
 import os
 import subprocess
-from typing import Optional
 
 from .console import UIFormatter
-from .secret_generator import SecretKeyGenerator
 
 
 class FileManager:
     """Manages file operations for Django project setup."""
-    
+
     def __init__(self, project_root: str, project_name: str, app_name: str):
         self.project_root = project_root
         self.project_name = project_name
@@ -21,11 +19,11 @@ class FileManager:
         self.project_configs = os.path.join(project_root, project_name)
         self.settings_folder = os.path.join(self.project_configs, "settings")
         self.settings_file = os.path.join(self.project_configs, "settings.py")
-    
+
     def create_gitignore(self) -> bool:
         """Create .gitignore file with Django-specific patterns."""
         os.chdir(self.project_root)
-        
+
         gitignore_content = [
             "*.pyc",
             "__pycache__/",
@@ -45,19 +43,19 @@ class FileManager:
             ".pytest_cache/",
             "node_modules/",
             "venv/",
-            ".venv/"
+            ".venv/",
         ]
-        
+
         with open(".gitignore", "w") as file:
             file.write("\n".join(gitignore_content) + "\n")
-        
+
         UIFormatter.print_success("Created .gitignore file")
         return True
-    
+
     def create_requirements(self) -> bool:
         """Create requirements.txt with Django dependencies."""
         os.chdir(self.project_root)
-        
+
         requirements = [
             "Django>=5.2.7",
             "python-dotenv>=1.1.1",
@@ -70,17 +68,17 @@ class FileManager:
             "psycopg2-binary>=2.9.9",  # For PostgreSQL support
             "gunicorn>=21.2.0",  # For production deployment
         ]
-        
+
         with open("requirements.txt", "w") as file:
             file.write("\n".join(requirements) + "\n")
-        
+
         UIFormatter.print_success("Created requirements.txt with Django dependencies")
         return True
-    
+
     def create_readme(self) -> bool:
         """Create basic README.md file."""
         os.chdir(self.project_root)
-        
+
         readme_content = f"""# {self.project_name}
 
 A Django project created with django-setup.
@@ -141,17 +139,17 @@ When running in development mode, API documentation is available at:
 - Swagger UI: http://localhost:8000/docs/
 - Schema: http://localhost:8000/schema/
 """
-        
+
         with open("README.md", "w") as file:
             file.write(readme_content)
-        
+
         UIFormatter.print_success("Created README.md file")
         return True
-    
+
     def create_env_file(self) -> bool:
         """Create .env.sample file with environment variables."""
         os.chdir(self.project_root)
-        
+
         env_content = f"""# Django settings
 DJANGO_SETTINGS_MODULE={self.project_name}.settings.development
 SECRET_KEY= your-secret-key
@@ -164,18 +162,18 @@ DB_PASSWORD=
 DB_HOST=
 DB_PORT=
 """
-        
+
         with open(".env.sample", "w") as file:
             file.write(env_content)
-        
+
         UIFormatter.print_success("Created .env.sample file with generated secret key")
         return True
-    
+
     def create_app_urls(self) -> bool:
         """Create urls.py file in the app folder."""
         app_path = os.path.join(self.project_root, self.app_name)
         os.chdir(app_path)
-        
+
         urls_content = f"""from django.urls import path
 from . import views
 
@@ -186,17 +184,17 @@ urlpatterns = [
     # path('', views.index, name='index'),
 ]
 """
-        
+
         with open("urls.py", "w") as file:
             file.write(urls_content)
-        
+
         UIFormatter.print_success(f"Created {self.app_name}/urls.py")
         return True
-    
+
     def update_project_urls(self) -> bool:
         """Update project urls.py with comprehensive URL configuration."""
         os.chdir(self.project_configs)
-        
+
         urls_content = f"""from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -227,19 +225,21 @@ if settings.DEBUG:
         path("docs/", SpectacularSwaggerView.as_view(url_name="schema")),
     ]
 """
-        
+
         with open("urls.py", "w") as file:
             file.write(urls_content)
-        
+
         self._format_file("urls.py")
-        UIFormatter.print_success("Updated project urls.py with comprehensive URL configuration")
+        UIFormatter.print_success(
+            "Updated project urls.py with comprehensive URL configuration"
+        )
         return True
-    
+
     def update_wsgi_file(self) -> bool:
         """Update wsgi.py with custom configuration."""
         os.chdir(self.project_configs)
-        
-        wsgi_content = f"""import os
+
+        wsgi_content = """import os
 from dotenv import load_dotenv
 from django.core.wsgi import get_wsgi_application
 
@@ -249,19 +249,19 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODUL
 
 application = get_wsgi_application()
 """
-        
+
         with open("wsgi.py", "w") as file:
             file.write(wsgi_content)
-        
+
         self._format_file("wsgi.py")
         UIFormatter.print_success("Updated wsgi.py with custom configuration")
         return True
-    
+
     def update_asgi_file(self) -> bool:
         """Update asgi.py with custom configuration."""
         os.chdir(self.project_configs)
-        
-        asgi_content = f"""import os
+
+        asgi_content = """import os
 from dotenv import load_dotenv
 from django.core.asgi import get_asgi_application
 
@@ -271,19 +271,19 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODUL
 
 application = get_asgi_application()
 """
-        
+
         with open("asgi.py", "w") as file:
             file.write(asgi_content)
-        
+
         self._format_file("asgi.py")
         UIFormatter.print_success("Updated asgi.py with custom configuration")
         return True
-    
+
     def update_manage_py(self) -> bool:
         """Update manage.py with custom configuration."""
         os.chdir(self.project_root)
-        
-        manage_content = f"""#!/usr/bin/env python
+
+        manage_content = """#!/usr/bin/env python
 \"\"\"Django's command-line utility for administrative tasks.\"\"\"
 import os
 import sys
@@ -309,14 +309,14 @@ if __name__ == "__main__":
     load_dotenv()
     main()
 """
-        
+
         with open("manage.py", "w") as file:
             file.write(manage_content)
-        
+
         self._format_file("manage.py")
         UIFormatter.print_success("Updated manage.py with custom configuration")
         return True
-    
+
     def _format_file(self, filename: str) -> None:
         """Format Python file using Black formatter."""
         subprocess.run(["black", filename], check=True, capture_output=True)
