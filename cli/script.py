@@ -226,6 +226,10 @@ def parse_arguments() -> argparse.Namespace:
         "--length", type=int, default=50, help="Length of each secret key"
     )
 
+    # App command
+    app_parser = subparsers.add_parser("app", help="Create a new Django app")
+    app_parser.add_argument("app_name", help="Name of the Django app to create")
+
     return parser.parse_args()
 
 
@@ -269,6 +273,64 @@ def handle_secret_command(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def handle_app_command(args: argparse.Namespace) -> None:
+    """Handle the Django app creation command."""
+    try:
+        from .app_manager import AppManager
+
+        # Clear screen
+        clear_screen()
+
+        # Display welcome message
+        console.print()
+        UIFormatter.print_header("Django App Creation")
+        console.print()
+
+        # Validate app name
+        is_valid, error_msg = validate_app_name(args.app_name)
+        if not is_valid:
+            UIFormatter.print_error(error_msg)
+            sys.exit(1)
+
+        # Create app manager
+        app_manager = AppManager(args.app_name)
+
+        # Create the app
+        success = app_manager.create_app()
+
+        if success:
+            UIFormatter.print_success(
+                f"Django app '{args.app_name}' created successfully!"
+            )
+
+            # Show next steps
+            from rich.panel import Panel
+            from rich.text import Text
+
+            instructions = Text()
+            instructions.append("🚀 Next Steps:\n", style=UIColors.ACCENT)
+            instructions.append(
+                "1. The app has been added to INSTALLED_APPS in base.py\n"
+            )
+            instructions.append("2. Create your models in the app's models.py\n")
+            instructions.append("3. Run migrations: python manage.py makemigrations\n")
+            instructions.append("4. Apply migrations: python manage.py migrate\n")
+            instructions.append("5. Create views and URLs for your app\n")
+
+            console.print(
+                Panel(instructions, title="💡 What's Next", border_style="green")
+            )
+        else:
+            UIFormatter.print_error(f"Failed to create Django app '{args.app_name}'")
+            sys.exit(1)
+
+        console.print()
+
+    except Exception as e:
+        UIFormatter.print_error(f"Failed to create Django app: {e}")
+        sys.exit(1)
+
+
 def main() -> None:
     """Main entry point for the Django setup script."""
     try:
@@ -278,6 +340,11 @@ def main() -> None:
         # Handle secret command
         if args.command == "secret":
             handle_secret_command(args)
+            return
+
+        # Handle app command
+        if args.command == "app":
+            handle_app_command(args)
             return
 
         # Default to setup command
@@ -326,4 +393,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

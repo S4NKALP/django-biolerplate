@@ -247,4 +247,3 @@ class UIFormatter:
             table.add_row(feature, description, status)
 
         return table
-
